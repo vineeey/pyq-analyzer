@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Module {{ module.number }} - {{ subject.name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm 1.5cm;
+            @bottom-right {
+                content: counter(page) " of " counter(pages);
+            }
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #333;
+        }
+        
+        h1 {
+            color: #1a1a1a;
+            font-size: 20pt;
+            text-align: center;
+            margin: 0 0 10px 0;
+            padding: 10px 0;
+            border-bottom: 3px solid #2c3e50;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            font-size: 16pt;
+            margin: 25px 0 15px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        h3 {
+            color: #34495e;
+            font-size: 13pt;
+            margin: 20px 0 10px 0;
+        }
+        
+        h4 {
+            color: #555;
+            font-size: 12pt;
+            margin: 15px 0 8px 0;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .subject-code {
+            font-size: 14pt;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .scheme-info {
+            font-size: 10pt;
+            color: #95a5a6;
+            margin-bottom: 15px;
+        }
+        
+        .section {
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        .part-header {
+            background-color: #ecf0f1;
+            padding: 8px 12px;
+            margin: 15px 0 10px 0;
+            border-left: 4px solid #3498db;
+            font-weight: bold;
+            font-size: 12pt;
+        }
+        
+        .year-group {
+            margin: 15px 0;
+        }
+        
+        .year-title {
+            font-weight: bold;
+            color: #2980b9;
+            margin: 10px 0 5px 0;
+        }
+        
+        .question-item {
+            margin: 8px 0 8px 20px;
+            line-height: 1.6;
+        }
+        
+        .question-number {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        .question-text {
+            margin-left: 5px;
+        }
+        
+        .marks-year {
+            color: #7f8c8d;
+            font-size: 10pt;
+            font-style: italic;
+        }
+        
+        .sub-question {
+            margin-left: 30px;
+            margin-top: 5px;
+        }
+        
+        .priority-section {
+            margin: 30px 0;
+            page-break-inside: avoid;
+        }
+        
+        .priority-tier {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .tier-1 {
+            background-color: #ffebee;
+            border-left: 5px solid #e74c3c;
+        }
+        
+        .tier-2 {
+            background-color: #fff3e0;
+            border-left: 5px solid #f39c12;
+        }
+        
+        .tier-3 {
+            background-color: #e8f5e9;
+            border-left: 5px solid #27ae60;
+        }
+        
+        .tier-4 {
+            background-color: #e3f2fd;
+            border-left: 5px solid #3498db;
+        }
+        
+        .tier-title {
+            font-weight: bold;
+            font-size: 13pt;
+            margin-bottom: 10px;
+        }
+        
+        .topic-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 3px;
+        }
+        
+        .topic-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .topic-details {
+            font-size: 10pt;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .frequency-badge {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 9pt;
+            margin-right: 5px;
+        }
+        
+        .years-list {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .summary-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+        
+        .study-order {
+            margin: 20px 0;
+        }
+        
+        .study-order ol {
+            counter-reset: study-counter;
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .study-order li {
+            counter-increment: study-counter;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-left: 3px solid #3498db;
+        }
+        
+        .study-order li::before {
+            content: counter(study-counter) ". ";
+            font-weight: bold;
+            color: #e74c3c;
+            margin-right: 5px;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Module {{ module.number }}: {{ module.name }}</h1>
+        <div class="subject-code">{{ subject.code }} – {{ subject.name }}</div>
+        {% if subject.university %}
+        <div class="scheme-info">{{ subject.university }}{% if subject.year %}, {{ subject.year }} Scheme{% endif %}</div>
+        {% endif %}
+    </div>
+    
+    <!-- PART A Questions -->
+    {% if part_a_questions %}
+    <div class="section">
+        <h2>PART A Questions</h2>
+        <div class="part-header">Short Answer Questions ({{ part_a_marks }} marks each)</div>
+        
+        {% for year, questions in part_a_by_year.items %}
+        <div class="year-group">
+            <div class="year-title">{{ year }}:</div>
+            {% for question in questions %}
+            <div class="question-item">
+                <span class="question-number">Q{{ question.question_number }}:</span>
+                <span class="question-text">{{ question.text }}</span>
+                <span class="marks-year">({{ year }}, {{ question.marks }} marks)</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- PART B Questions -->
+    {% if part_b_questions %}
+    <div class="section">
+        <h2>PART B Questions</h2>
+        <div class="part-header">Long Answer Questions ({{ part_b_marks }} marks each)</div>
+        
+        {% for year, questions in part_b_by_year.items %}
+        <div class="year-group">
+            <div class="year-title">{{ year }}:</div>
+            {% for question in questions %}
+            <div class="question-item">
+                <span class="question-number">Q{{ question.question_number }}:</span>
+                <span class="question-text">{{ question.text }}</span>
+                <span class="marks-year">({{ year }}, {{ question.marks }} marks)</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Topic Clusters & Priority Analysis -->
+    {% if topic_clusters %}
+    <div class="page-break"></div>
+    <div class="priority-section">
+        <h2>Repeated Question Analysis (Prioritized List)</h2>
+        
+        <div class="summary-box">
+            <strong>Summary:</strong> This module has {{ topic_clusters|length }} distinct topics identified from {{ papers_count }} exam papers.
+            The topics are categorized into priority tiers based on their frequency of appearance across different years.
+        </div>
+        
+        <!-- Tier 1 - Top Priority -->
+        {% if tier_1_topics %}
+        <div class="priority-tier tier-1">
+            <div class="tier-title">🔴 Top Priority – Repeated 4+ times</div>
+            <p style="font-size: 10pt; color: #666; margin-bottom: 15px;">
+                These topics appear most frequently and should be prioritized in your preparation.
+            </p>
+            {% for topic in tier_1_topics %}
+            <div class="topic-item">
+                <div class="topic-name">
+                    <span class="frequency-badge">{{ topic.frequency_count }}x</span>
+                    {{ topic.topic_name }}
+                </div>
+                <div class="topic-details">
+                    <strong>Appears in:</strong> <span class="years-list">{{ topic.years_appeared|join:", " }}</span><br>
+                    <strong>Total marks:</strong> {{ topic.total_marks }} | <strong>Avg marks:</strong> {{ topic.avg_marks }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Tier 2 - High Priority -->
+        {% if tier_2_topics %}
+        <div class="priority-tier tier-2">
+            <div class="tier-title">🟡 High Priority – Repeated 3 times</div>
+            <p style="font-size: 10pt; color: #666; margin-bottom: 15px;">
+                These topics appear regularly and are important for exam preparation.
+            </p>
+            {% for topic in tier_2_topics %}
+            <div class="topic-item">
+                <div class="topic-name">
+                    <span class="frequency-badge">{{ topic.frequency_count }}x</span>
+                    {{ topic.topic_name }}
+                </div>
+                <div class="topic-details">
+                    <strong>Appears in:</strong> <span class="years-list">{{ topic.years_appeared|join:", " }}</span><br>
+                    <strong>Total marks:</strong> {{ topic.total_marks }} | <strong>Avg marks:</strong> {{ topic.avg_marks }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Tier 3 - Medium Priority -->
+        {% if tier_3_topics %}
+        <div class="priority-tier tier-3">
+            <div class="tier-title">🟢 Medium Priority – Repeated 2 times</div>
+            <p style="font-size: 10pt; color: #666; margin-bottom: 15px;">
+                These topics have appeared twice and should be covered after high-priority topics.
+            </p>
+            {% for topic in tier_3_topics %}
+            <div class="topic-item">
+                <div class="topic-name">
+                    <span class="frequency-badge">{{ topic.frequency_count }}x</span>
+                    {{ topic.topic_name }}
+                </div>
+                <div class="topic-details">
+                    <strong>Appears in:</strong> <span class="years-list">{{ topic.years_appeared|join:", " }}</span><br>
+                    <strong>Total marks:</strong> {{ topic.total_marks }} | <strong>Avg marks:</strong> {{ topic.avg_marks }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Tier 4 - Low Priority -->
+        {% if tier_4_topics %}
+        <div class="priority-tier tier-4">
+            <div class="tier-title">🔵 Low Priority – Repeated 1 time</div>
+            <p style="font-size: 10pt; color: #666; margin-bottom: 15px;">
+                These topics have appeared only once. Review if time permits.
+            </p>
+            {% for topic in tier_4_topics %}
+            <div class="topic-item">
+                <div class="topic-name">
+                    <span class="frequency-badge">{{ topic.frequency_count }}x</span>
+                    {{ topic.topic_name }}
+                </div>
+                <div class="topic-details">
+                    <strong>Appears in:</strong> <span class="years-list">{{ topic.years_appeared|join:", " }}</span><br>
+                    <strong>Total marks:</strong> {{ topic.total_marks }} | <strong>Avg marks:</strong> {{ topic.avg_marks }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Final Study Priority Order -->
+        <div class="study-order">
+            <h3>📚 Final Study Priority Order</h3>
+            <p style="font-size: 10pt; color: #666; margin-bottom: 15px;">
+                Study these topics in the following order to maximize your marks:
+            </p>
+            <ol>
+                {% for topic in all_topics_sorted %}
+                <li>
+                    <strong>{{ topic.topic_name }}</strong>
+                    <span style="color: #7f8c8d; font-size: 10pt;">
+                        ({{ topic.frequency_count }}x in {{ topic.years_appeared|join:", " }})
+                    </span>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Footer -->
+    <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #dee2e6; text-align: center; font-size: 9pt; color: #999;">
+        Generated by PYQ Analyzer | Module {{ module.number }} of {{ total_modules }}
+    </div>
+</body>
+</html>
