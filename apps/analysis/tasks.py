@@ -3,6 +3,7 @@ Background tasks for analysis using Django-Q2.
 """
 from django_q.tasks import async_task
 from apps.papers.models import Paper
+from apps.subjects.models import Subject
 
 
 def analyze_paper_task(paper_id: str):
@@ -30,10 +31,41 @@ def analyze_paper_task(paper_id: str):
         paper.save()
 
 
+def analyze_subject_topics_task(subject_id: str):
+    """
+    Background task to analyze topics for a subject.
+    Performs clustering and repetition analysis.
+    """
+    from apps.analytics.clustering import analyze_subject_topics
+    
+    try:
+        subject = Subject.objects.get(id=subject_id)
+        
+        # Run topic clustering analysis
+        results = analyze_subject_topics(subject)
+        
+        return results
+        
+    except Subject.DoesNotExist:
+        pass
+    except Exception as e:
+        import logging
+        logging.error(f"Topic analysis failed for subject {subject_id}: {e}")
+
+
 def queue_paper_analysis(paper: Paper):
     """Queue a paper for background analysis."""
     async_task(
         'apps.analysis.tasks.analyze_paper_task',
         str(paper.id),
         task_name=f'analyze_paper_{paper.id}'
+    )
+
+
+def queue_topic_analysis(subject: Subject):
+    """Queue topic clustering analysis for a subject."""
+    async_task(
+        'apps.analysis.tasks.analyze_subject_topics_task',
+        str(subject.id),
+        task_name=f'analyze_topics_{subject.id}'
     )
