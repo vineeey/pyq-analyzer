@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Module {{ module.number }} - {{ subject.name }}</title>
+</head>
+<body>
+    <h1>Module {{ module.number }}: {{ module.name }}</h1>
+    <p><strong>Subject:</strong> {{ subject.name }}{% if subject.code %} ({{ subject.code }}){% endif %}</p>
+    {% if subject.university %}<p><strong>University:</strong> {{ subject.university }}</p>{% endif %}
+    {% if subject.year %}<p><strong>Scheme:</strong> {{ subject.year }}</p>{% endif %}
+    
+    <hr style="margin: 20px 0;">
+    
+    <!-- Part A Questions -->
+    <h2>PART A (3 Marks each)</h2>
+    {% if part_a_by_year %}
+        {% for year, questions in part_a_by_year.items %}
+            <h3 class="year-label">{{ year }}</h3>
+            <ul>
+            {% for question in questions %}
+                <li>
+                    <strong>Q{{ question.question_number }}:</strong> {{ question.text }}
+                    <span class="marks">({{ year }}, {{ question.marks|default:3 }} marks)</span>
+                </li>
+            {% endfor %}
+            </ul>
+        {% endfor %}
+    {% else %}
+        <p><em>No Part A questions found for this module.</em></p>
+    {% endif %}
+    
+    <div style="page-break-after: always;"></div>
+    
+    <!-- Part B Questions -->
+    <h2>PART B (14 Marks each)</h2>
+    {% if part_b_by_year %}
+        {% for year, questions in part_b_by_year.items %}
+            <h3 class="year-label">{{ year }}</h3>
+            {% for question in questions %}
+                <div class="question-block">
+                    <p><strong>Q{{ question.question_number }}:</strong> {{ question.text }}
+                    <span class="marks">({{ year }}, {{ question.marks|default:14 }} marks)</span></p>
+                    
+                    {% if question.sub_questions %}
+                        <ul>
+                        {% for sub_q in question.sub_questions %}
+                            <li>{{ sub_q }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% else %}
+        <p><em>No Part B questions found for this module.</em></p>
+    {% endif %}
+    
+    <div style="page-break-after: always;"></div>
+    
+    <!-- Repeated Question Analysis -->
+    <h2>Repeated Question Analysis (Prioritized List)</h2>
+    
+    {% if topics_by_tier %}
+        {% for tier_name, clusters in topics_by_tier.items %}
+            <h3>{{ tier_name }} — Repeated {{ clusters.0.frequency_count }}{% if clusters.0.frequency_count > 1 %} times{% else %} time{% endif %}</h3>
+            
+            {% for cluster in clusters %}
+                <div class="question-block">
+                    <h4>{{ forloop.counter }}. {{ cluster.topic_name }}</h4>
+                    <p><strong>Appears in:</strong> {{ cluster.years_appeared|join:", " }}</p>
+                    <p><strong>Total occurrences:</strong> {{ cluster.frequency_count }} 
+                       | <strong>Part A:</strong> {{ cluster.part_a_count }} 
+                       | <strong>Part B:</strong> {{ cluster.part_b_count }}
+                       | <strong>Total marks:</strong> {{ cluster.total_marks }}</p>
+                    
+                    {% if cluster.representative_text %}
+                        <p><em>Example: "{{ cluster.representative_text|truncatewords:30 }}"</em></p>
+                    {% endif %}
+                    
+                    {% if cluster.frequency_count >= 4 %}
+                        <p style="color: #e74c3c;"><strong>⭐ CRITICAL TOPIC - Very high probability of appearing in exam!</strong></p>
+                    {% elif cluster.frequency_count == 3 %}
+                        <p style="color: #e67e22;"><strong>Important topic - Strong preparation recommended.</strong></p>
+                    {% elif cluster.frequency_count == 2 %}
+                        <p style="color: #f39c12;">Moderately important - Good to prepare.</p>
+                    {% else %}
+                        <p style="color: #95a5a6;">Low priority - Study if time permits.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% else %}
+        <p><em>No topic analysis available yet. Process more question papers to see patterns.</em></p>
+    {% endif %}
+    
+    <div style="page-break-after: always;"></div>
+    
+    <!-- Final Study Priority Order -->
+    <h2>Final Study Priority Order</h2>
+    <p>Study topics in this exact order to maximize your marks:</p>
+    
+    {% if study_priority %}
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <thead>
+                <tr style="background-color: #3498db; color: white;">
+                    <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Rank</th>
+                    <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Topic</th>
+                    <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Frequency</th>
+                    <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Marks</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in study_priority %}
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 10px;">{{ item.rank }}</td>
+                    <td style="border: 1px solid #ddd; padding: 10px;">
+                        <strong>{{ item.topic }}</strong><br>
+                        <small style="color: #7f8c8d;">Years: {{ item.years }}</small>
+                    </td>
+                    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">
+                        <span class="priority-tier-{{ item.tier|lower|cut:' '|cut:'priority' }}">
+                            {{ item.frequency }}
+                        </span>
+                    </td>
+                    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">{{ item.total_marks }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        
+        <div style="margin-top: 30px; padding: 15px; background-color: #ecf0f1; border-left: 4px solid #3498db;">
+            <h3 style="margin-top: 0;">Study Strategy:</h3>
+            <ol>
+                <li><strong>First 3-4 weeks:</strong> Focus on <span style="color: #e74c3c;">Top Priority</span> topics (Tier 1) - these have the highest probability.</li>
+                <li><strong>Next 2 weeks:</strong> Cover <span style="color: #e67e22;">High Priority</span> topics (Tier 2) - good chance of appearing.</li>
+                <li><strong>Last week:</strong> Review <span style="color: #f39c12;">Medium Priority</span> topics (Tier 3) if time permits.</li>
+                <li><strong>If extra time:</strong> Glance through <span style="color: #95a5a6;">Low Priority</span> topics (Tier 4).</li>
+            </ol>
+            <p><strong>Tip:</strong> Practice answering questions from recent years (last 2-3 years) as patterns often repeat!</p>
+        </div>
+    {% else %}
+        <p><em>No study priority order available. Upload more question papers to generate recommendations.</em></p>
+    {% endif %}
+    
+    <hr style="margin: 30px 0;">
+    <p style="text-align: center; color: #7f8c8d; font-size: 10pt;">
+        <em>Generated by PYQ Analyzer | Module {{ module.number }}: {{ module.name }}</em>
+    </p>
+</body>
+</html>

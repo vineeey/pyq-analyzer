@@ -74,7 +74,8 @@ class AnalysisPipeline:
                     paper=paper,
                     question_number=q_data['question_number'],
                     text=q_data['text'],
-                    marks=q_data.get('marks')
+                    marks=q_data.get('marks'),
+                    part=q_data.get('part', '')  # Store Part A or B
                 )
                 
                 # Check for module hint from PDF first
@@ -87,6 +88,19 @@ class AnalysisPipeline:
                             question.module = module
                     except (ValueError, TypeError):
                         pass
+                
+                # If no module hint, try using exam pattern if available
+                if not question.module and hasattr(subject, 'exam_pattern'):
+                    exam_pattern = subject.exam_pattern
+                    part = q_data.get('part', '')
+                    if exam_pattern and part:
+                        module_num = exam_pattern.get_module_for_question(
+                            q_data['question_number'], part
+                        )
+                        if module_num:
+                            module = next((m for m in modules if m.number == module_num), None)
+                            if module:
+                                question.module = module
                 
                 # Bloom's taxonomy (rule-based, fast)
                 question.bloom_level = self.bloom_classifier.classify(q_data['text'])
