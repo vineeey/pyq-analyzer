@@ -60,6 +60,20 @@ class Question(BaseModel):
     # Embedding for similarity search
     embedding = models.JSONField(null=True, blank=True)  # Store as list of floats
     
+    # Topic clustering
+    topic_cluster = models.ForeignKey(
+        'analytics.TopicCluster',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='questions',
+        help_text='Topic cluster this question belongs to'
+    )
+    normalized_text = models.TextField(
+        blank=True,
+        help_text='Normalized text for clustering/matching'
+    )
+    
     # Duplicate detection
     is_duplicate = models.BooleanField(default=False)
     duplicate_of = models.ForeignKey(

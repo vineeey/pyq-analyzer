@@ -55,7 +55,9 @@ class AnalysisPipeline:
             paper.page_count = self.extractor.get_page_count(paper.file.path)
             paper.save()
             
-            questions_data = self.extractor.extract_questions(text)
+            # Get exam pattern from subject
+            exam_pattern = paper.subject.get_exam_pattern()
+            questions_data = self.extractor.extract_questions(text, exam_pattern)
             job.questions_extracted = len(questions_data)
             job.progress = 30
             job.save()
