@@ -1,0 +1,125 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Module-wise Reports - {{ subject.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Module-wise Reports</h1>
+                <p class="text-gray-600 mt-2">{{ subject.code }} – {{ subject.name }}</p>
+            </div>
+            <a href="{% url 'subjects:detail' subject.pk %}" class="text-blue-600 hover:text-blue-800">
+                ← Back to Subject
+            </a>
+        </div>
+    </div>
+
+    <!-- Generation Status -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-blue-900">Report Status</h3>
+                <p class="text-blue-700 mt-1">
+                    {{ generated_count }} of {{ total_modules }} module reports generated
+                </p>
+            </div>
+            <form method="post" action="{% url 'reports:generate_all_modules' subject.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition">
+                    {% if generated_count == 0 %}
+                        Generate All Reports
+                    {% else %}
+                        Regenerate All Reports
+                    {% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Module Reports List -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Available Reports</h2>
+        </div>
+        
+        <div class="divide-y divide-gray-200">
+            {% for report in reports %}
+            <div class="px-6 py-4 hover:bg-gray-50 transition">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-medium text-gray-900">
+                            Module {{ report.module_number }}: {{ report.module_name }}
+                        </h3>
+                        <p class="text-sm text-gray-500 mt-1">
+                            {% if report.exists %}
+                                <span class="inline-flex items-center text-green-600">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Report available
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center text-gray-400">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                    </svg>
+                                    Not generated yet
+                                </span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        {% if report.exists %}
+                        <a href="{{ report.url }}" 
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            View
+                        </a>
+                        <a href="{% url 'reports:download_module_report' subject.pk report.module_pk %}" 
+                           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Download
+                        </a>
+                        {% else %}
+                        <span class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-500 font-medium rounded-lg cursor-not-allowed">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Download
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="px-6 py-8 text-center text-gray-500">
+                <p>No modules found for this subject.</p>
+                <p class="text-sm mt-2">Create modules in the subject settings first.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-yellow-900 mb-2">📝 How to Use</h3>
+        <ul class="list-disc list-inside space-y-1 text-yellow-800">
+            <li>Click "Generate All Reports" to create PDF reports for all modules</li>
+            <li>Each report contains questions organized by year and priority analysis</li>
+            <li>Reports show topic repetition patterns and study priority order</li>
+            <li>Download individual module reports or regenerate if needed</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

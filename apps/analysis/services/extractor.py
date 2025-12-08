@@ -57,11 +57,15 @@ class QuestionExtractor:
         
         return '\n'.join(text_parts)
     
-    def extract_questions(self, text: str) -> List[Dict[str, Any]]:
+    def extract_questions(self, text: str, exam_pattern: dict = None) -> List[Dict[str, Any]]:
         """
         Parse text to extract individual questions from university question papers.
         
         Handles KTU-style exam paper formats with OCR artifacts.
+        
+        Args:
+            text: Extracted text from PDF
+            exam_pattern: Optional exam pattern configuration for module mapping
         """
         questions = []
         
@@ -80,6 +84,10 @@ class QuestionExtractor:
         if len(questions) < 5:
             logger.info("Primary extraction yielded few questions, trying fallback...")
             questions = self._fallback_extraction(cleaned_text)
+        
+        # Apply exam pattern mapping if provided
+        if exam_pattern:
+            questions = self._apply_exam_pattern(questions, exam_pattern)
         
         # Deduplicate
         questions = self._deduplicate(questions)
@@ -396,6 +404,42 @@ class QuestionExtractor:
                 unique.append(q)
         
         return unique
+    
+    def _apply_exam_pattern(self, questions: List[Dict[str, Any]], exam_pattern: dict) -> List[Dict[str, Any]]:
+        """
+        Apply exam pattern configuration to map questions to modules.
+        
+        Args:
+            questions: List of extracted questions
+            exam_pattern: Pattern dictionary with part_a and part_b mappings
+            
+        Returns:
+            Updated questions list with module_hint
+        """
+        for question in questions:
+            q_num = question.get('question_number', '')
+            part = question.get('part', 'A')
+            
+            # Skip if already has module hint
+            if question.get('module_hint'):
+                continue
+            
+            # Extract numeric part from question number
+            match = re.match(r'(\d+)', str(q_num))
+            if not match:
+                continue
+            
+            num_str = match.group(1)
+            part_key = f"part_{part.lower()}"
+            
+            if part_key in exam_pattern:
+                questions_map = exam_pattern[part_key].get('questions', {})
+                module_num = questions_map.get(num_str)
+                
+                if module_num:
+                    question['module_hint'] = module_num
+        
+        return questions
     
     def get_page_count(self, pdf_path: str) -> int:
         """Get the number of pages in a PDF."""

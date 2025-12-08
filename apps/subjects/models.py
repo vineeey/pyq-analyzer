@@ -30,7 +30,21 @@ class Subject(SoftDeleteModel):
     exam_board = models.CharField(max_length=255, blank=True)
     year = models.CharField(max_length=50, blank=True)
     
-    # Settings stored as JSON
+    # Exam pattern configuration (stored as JSON)
+    exam_pattern = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Question-to-module mapping pattern (e.g., KTU standard)'
+    )
+    
+    # Priority tier thresholds
+    tier_thresholds = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Thresholds for priority tiers (e.g., {"tier_1": 4, "tier_2": 3, "tier_3": 2})'
+    )
+    
+    # Other settings stored as JSON
     settings = models.JSONField(default=dict, blank=True)
     
     class Meta:
@@ -51,6 +65,42 @@ class Subject(SoftDeleteModel):
     def get_paper_count(self):
         """Return the number of papers for this subject."""
         return self.papers.count() if hasattr(self, 'papers') else 0
+    
+    def get_exam_pattern(self):
+        """Get exam pattern, returning default if not set."""
+        if self.exam_pattern:
+            return self.exam_pattern
+        
+        # Default to KTU standard pattern
+        from .exam_patterns import KTU_STANDARD_PATTERN
+        return KTU_STANDARD_PATTERN
+    
+    def set_exam_pattern(self, pattern_name=None, custom_pattern=None):
+        """
+        Set exam pattern for this subject.
+        
+        Args:
+            pattern_name: Name of predefined pattern ('ktu_standard', 'generic_5_module', etc.)
+            custom_pattern: Custom pattern dict (overrides pattern_name)
+        """
+        if custom_pattern:
+            self.exam_pattern = custom_pattern
+        elif pattern_name:
+            from .exam_patterns import get_pattern_by_name
+            self.exam_pattern = get_pattern_by_name(pattern_name)
+        self.save(update_fields=['exam_pattern'])
+    
+    def get_tier_thresholds(self):
+        """Get priority tier thresholds, returning defaults if not set."""
+        if self.tier_thresholds:
+            return self.tier_thresholds
+        
+        # Default thresholds
+        return {
+            'tier_1': 4,  # 4+ exams = Top Priority
+            'tier_2': 3,  # 3 exams = High Priority
+            'tier_3': 2,  # 2 exams = Medium Priority
+        }
 
 
 class Module(SoftDeleteModel):

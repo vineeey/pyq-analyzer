@@ -55,7 +55,9 @@ class AnalysisPipeline:
             paper.page_count = self.extractor.get_page_count(paper.file.path)
             paper.save()
             
-            questions_data = self.extractor.extract_questions(text)
+            # Get exam pattern from subject
+            exam_pattern = paper.subject.get_exam_pattern()
+            questions_data = self.extractor.extract_questions(text, exam_pattern)
             job.questions_extracted = len(questions_data)
             job.progress = 30
             job.save()
@@ -169,6 +171,15 @@ class AnalysisPipeline:
             paper.status = Paper.ProcessingStatus.COMPLETED
             paper.processed_at = timezone.now()
             paper.save()
+            
+            # Trigger clustering asynchronously if django-q is available
+            try:
+                from django_q.tasks import async_task
+                from apps.analytics.tasks import cluster_subject_topics
+                async_task(cluster_subject_topics, str(subject.id))
+                logger.info(f"Queued clustering task for subject {subject.id}")
+            except ImportError:
+                logger.warning("Django-Q not available, skipping async clustering")
             
         except Exception as e:
             logger.error(f"Analysis failed for paper {paper.id}: {e}")
