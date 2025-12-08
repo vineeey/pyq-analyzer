@@ -2,6 +2,7 @@
 Topic clustering service using embeddings and similarity matching.
 """
 import logging
+import re
 import numpy as np
 from typing import List, Dict, Tuple, Optional
 from django.db.models import Q
@@ -330,7 +331,3 @@ class TopicClusterer:
             cluster.update_priority_tier(tier_thresholds)
         
         logger.info(f"Updated priorities for {clusters.count()} clusters")
-
-
-# Import re module that was used in _generate_topic_name
-import re
