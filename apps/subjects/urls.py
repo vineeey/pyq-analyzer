@@ -3,6 +3,7 @@ URL patterns for subjects app.
 """
 from django.urls import path
 from . import views
+from . import actions
 
 app_name = 'subjects'
 
@@ -18,4 +19,9 @@ urlpatterns = [
     path('<uuid:subject_pk>/modules/create/', views.ModuleCreateView.as_view(), name='module_create'),
     path('modules/<uuid:pk>/edit/', views.ModuleUpdateView.as_view(), name='module_update'),
     path('modules/<uuid:pk>/delete/', views.ModuleDeleteView.as_view(), name='module_delete'),
+    
+    # Action URLs
+    path('<uuid:subject_pk>/analyze/', actions.AnalyzeSubjectView.as_view(), name='analyze'),
+    path('<uuid:subject_pk>/cluster/', actions.TriggerClusteringView.as_view(), name='cluster'),
+    path('<uuid:subject_pk>/configure-pattern/', actions.ConfigureExamPatternView.as_view(), name='configure_pattern'),
 ]

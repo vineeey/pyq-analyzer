@@ -172,6 +172,15 @@ class AnalysisPipeline:
             paper.processed_at = timezone.now()
             paper.save()
             
+            # Trigger clustering asynchronously if django-q is available
+            try:
+                from django_q.tasks import async_task
+                from apps.analytics.tasks import cluster_subject_topics
+                async_task(cluster_subject_topics, str(subject.id))
+                logger.info(f"Queued clustering task for subject {subject.id}")
+            except ImportError:
+                logger.warning("Django-Q not available, skipping async clustering")
+            
         except Exception as e:
             logger.error(f"Analysis failed for paper {paper.id}: {e}")
             job.status = AnalysisJob.Status.FAILED
