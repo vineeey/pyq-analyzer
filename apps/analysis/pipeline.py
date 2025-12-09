@@ -29,6 +29,45 @@ class AnalysisPipeline:
         self.difficulty_estimator = DifficultyEstimator(llm_client)
         self.module_classifier = ModuleClassifier(llm_client)  # Works without LLM now
     
+    def _apply_ktu_rules(self, question_number: str, part: str) -> Optional[int]:
+        """
+        Apply KTU-specific classification rules.
+        
+        KTU Rules:
+        - Qn 1 & 2 → Module 1
+        - Qn 3 & 4 → Module 2
+        - Qn 5 & 6 → Module 3
+        - Qn 7 & 8 → Module 4
+        - Qn 9 & 10 → Module 5
+        - Qn 11 & 12 → Module 1
+        - Qn 13 & 14 → Module 2
+        - Qn 15 & 16 → Module 3
+        - Qn 17 & 18 → Module 4
+        - Qn 19 & 20 → Module 5
+        """
+        import re
+        
+        # Extract numeric part from question number (e.g., "11a" -> 11)
+        match = re.match(r'(\d+)', str(question_number))
+        if not match:
+            return None
+        
+        q_num = int(match.group(1))
+        
+        # Apply KTU rules
+        if q_num in [1, 2, 11, 12]:
+            return 1
+        elif q_num in [3, 4, 13, 14]:
+            return 2
+        elif q_num in [5, 6, 15, 16]:
+            return 3
+        elif q_num in [7, 8, 17, 18]:
+            return 4
+        elif q_num in [9, 10, 19, 20]:
+            return 5
+        
+        return None
+    
     def analyze_paper(self, paper: Paper) -> AnalysisJob:
         """
         Run complete analysis on a paper.
@@ -89,7 +128,15 @@ class AnalysisPipeline:
                     except (ValueError, TypeError):
                         pass
                 
-                # If no module hint, try using exam pattern if available
+                # For KTU papers, apply standard KTU classification rules
+                if not question.module and paper.university == 'ktu':
+                    module_num = self._apply_ktu_rules(q_data['question_number'], q_data.get('part', ''))
+                    if module_num and modules:
+                        module = next((m for m in modules if m.number == module_num), None)
+                        if module:
+                            question.module = module
+                
+                # If still no module, try using exam pattern if available
                 if not question.module and hasattr(subject, 'exam_pattern'):
                     exam_pattern = subject.exam_pattern
                     part = q_data.get('part', '')
