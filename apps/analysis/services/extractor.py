@@ -67,24 +67,28 @@ class QuestionExtractor:
         
         # First, clean and preprocess the text
         cleaned_text = self._clean_text(text)
+        logger.debug(f"Cleaned text length: {len(cleaned_text)} characters")
         
         # Extract Part A questions (1-10, typically 3 marks each)
         part_a_questions = self._extract_part_a(cleaned_text)
+        logger.info(f"Extracted {len(part_a_questions)} Part A questions")
         questions.extend(part_a_questions)
         
         # Extract Part B questions (11-20, module-wise, typically 6-8 marks each)
         part_b_questions = self._extract_part_b(cleaned_text)
+        logger.info(f"Extracted {len(part_b_questions)} Part B questions")
         questions.extend(part_b_questions)
         
         # If extraction yielded very few questions, try fallback
         if len(questions) < 5:
-            logger.info("Primary extraction yielded few questions, trying fallback...")
+            logger.warning(f"Primary extraction yielded only {len(questions)} questions, trying fallback method...")
             questions = self._fallback_extraction(cleaned_text)
+            logger.info(f"Fallback extraction found {len(questions)} questions")
         
         # Deduplicate
         questions = self._deduplicate(questions)
         
-        logger.info(f"Extracted {len(questions)} questions total")
+        logger.info(f"Final: Extracted {len(questions)} unique questions (Part A: {sum(1 for q in questions if q.get('part') == 'A')}, Part B: {sum(1 for q in questions if q.get('part') == 'B')})")
         return questions
     
     def _clean_text(self, text: str) -> str:
@@ -134,9 +138,11 @@ class QuestionExtractor:
         )
         
         if not part_a_match:
+            logger.debug("No Part A section found in document")
             return questions
         
         part_a_text = part_a_match.group(1)
+        logger.debug(f"Found Part A section with {len(part_a_text)} characters")
         
         # Clean instruction text
         part_a_text = re.sub(r'\(Answer.*?\)', '', part_a_text, flags=re.IGNORECASE)
@@ -150,15 +156,18 @@ class QuestionExtractor:
         part_a_text = ' '.join(part_a_text.split())
         
         # Pattern to match questions: number followed by question text
-        # The challenge is that marks (3) sometimes appear at the end or middle
+        # More flexible pattern to catch various formats:
+        # - "1. What is..." or "1) What is..." or "1 What is..."
+        # - Handles questions starting with capital letters, all caps, or lowercase (after punctuation)
         
-        # First, try to identify question boundaries by finding all question starts
-        q_starts = list(re.finditer(r'(\d{1,2})\s+([A-Z][a-z])', part_a_text))
+        # Find all question starts - more flexible pattern
+        # Matches: digit(s) optionally followed by . or ) then whitespace and a letter
+        q_starts = list(re.finditer(r'(\d{1,2})[\.\)]*\s+([A-Za-z])', part_a_text))
         
         for i, match in enumerate(q_starts):
             q_num = match.group(1)
             
-            # Skip if number > 10
+            # Skip if number > 10 (Part A typically has Q1-Q10)
             try:
                 if int(q_num) > 10:
                     continue
@@ -174,12 +183,21 @@ class QuestionExtractor:
             
             q_text = part_a_text[start:end].strip()
             
-            # Remove the question number from start
-            q_text = re.sub(r'^\d{1,2}\s+', '', q_text)
+            # Remove the question number and punctuation from start
+            q_text = re.sub(r'^\d{1,2}[\.\)]*\s+', '', q_text)
             
-            # Remove trailing marks (usually 3)
-            q_text = re.sub(r'\s+3\s*$', '', q_text)
-            q_text = re.sub(r'\s+\d\s*$', '', q_text)
+            # Extract marks if present (typically at end like "3 marks" or "(3)")
+            marks = 3  # Default for Part A
+            marks_match = re.search(r'\(?\s*(\d{1,2})\s*marks?\)?\s*$', q_text, re.IGNORECASE)
+            if marks_match:
+                try:
+                    marks = int(marks_match.group(1))
+                    q_text = q_text[:marks_match.start()].strip()
+                except ValueError:
+                    pass
+            
+            # Remove trailing marks without the word "marks"
+            q_text = re.sub(r'\s+\(?\d{1,2}\)?\s*$', '', q_text)
             
             # Clean OCR artifacts that sometimes appear at end
             q_text = re.sub(
@@ -189,11 +207,12 @@ class QuestionExtractor:
             
             q_text = q_text.strip()
             
-            if len(q_text) >= 15:
+            # Accept question if it's reasonably long and starts with a letter
+            if len(q_text) >= 10 and re.match(r'^[A-Za-z]', q_text):
                 questions.append({
                     'question_number': q_num,
                     'text': q_text,
-                    'marks': 3,
+                    'marks': marks,
                     'part': 'A',
                     'module_hint': None,
                 })
@@ -239,8 +258,10 @@ class QuestionExtractor:
             # Join lines
             mod_content = ' '.join(mod_content.split())
             
-            # Extract sub-questions like "11a)", "11 a)", "11a )", etc.
-            sub_q_pattern = r'(\d{1,2})\s*([a-z])\s*\)?[)\s]+([A-Z][^0-9\n]*?)(?=\s+\d{1,2}\s*[a-z]?\s*\)?|$)'
+            # Extract sub-questions with more flexible pattern
+            # Handles: "11a)", "11 a)", "11. a)", "11a )", "(a)", etc.
+            # Updated pattern to be more lenient and catch more variations
+            sub_q_pattern = r'(\d{1,2})\s*[\.\)]*\s*([a-z])\s*[\.\)]*\s+([A-Za-z][^0-9]*?)(?=\s+\d{1,2}\s*[\.\)]*\s*[a-z]|$)'
             
             for match in re.finditer(sub_q_pattern, mod_content, re.IGNORECASE):
                 q_num = match.group(1)
@@ -250,21 +271,33 @@ class QuestionExtractor:
                 # Clean text
                 q_text = re.sub(r'\s+', ' ', q_text)
                 
-                # Extract marks from end
+                # Extract marks from end (look for patterns like "7 marks", "(7)", "7")
                 marks = None
-                marks_match = re.search(r'\s+(\d{1,2})\s*$', q_text)
+                marks_match = re.search(r'\(?\s*(\d{1,2})\s*marks?\)?\s*$', q_text, re.IGNORECASE)
                 if marks_match:
-                    m = int(marks_match.group(1))
-                    if m <= 14:
-                        marks = m
-                        q_text = q_text[:marks_match.start()].strip()
+                    try:
+                        m = int(marks_match.group(1))
+                        if m <= 14:
+                            marks = m
+                            q_text = q_text[:marks_match.start()].strip()
+                    except ValueError:
+                        pass
+                
+                # Remove trailing single digit if no marks found yet
+                if marks is None:
+                    trailing_num = re.search(r'\s+(\d{1,2})\s*$', q_text)
+                    if trailing_num:
+                        m = int(trailing_num.group(1))
+                        if m <= 14:
+                            marks = m
+                            q_text = q_text[:trailing_num.start()].strip()
                 
                 # Remove trailing garbage
                 q_text = re.sub(r'\s*[E]\s*$', '', q_text)
-                q_text = re.sub(r'\s+\d\s*$', '', q_text)
                 q_text = q_text.strip()
                 
-                if len(q_text) >= 15:
+                # Accept question if reasonably long and starts with a letter
+                if len(q_text) >= 10 and re.match(r'^[A-Za-z]', q_text):
                     questions.append({
                         'question_number': f"{q_num}{sub}",
                         'text': q_text,
@@ -314,16 +347,16 @@ class QuestionExtractor:
                 i += 1
                 continue
             
-            # Look for question patterns
-            # Pattern: number [optional letter] ) text
-            q_match = re.match(r'^(\d{1,2})\s*([a-z])?\s*\)?\s*(.+)', line, re.IGNORECASE)
+            # Look for question patterns - more flexible
+            # Pattern: number [optional letter] [optional punctuation] text
+            q_match = re.match(r'^(\d{1,2})\s*([a-z])?\s*[\.\)]*\s*(.+)', line, re.IGNORECASE)
             if q_match and q_match.group(3).strip():
                 q_num = q_match.group(1)
                 sub = q_match.group(2) or ''
                 q_text = q_match.group(3).strip()
                 
-                # Skip if doesn't start with question-like text
-                if not re.match(r'^[A-Z]', q_text):
+                # Skip if doesn't start with question-like text (letter)
+                if not re.match(r'^[A-Za-z]', q_text):
                     i += 1
                     continue
                 
@@ -347,14 +380,30 @@ class QuestionExtractor:
                 # Clean text
                 q_text = re.sub(r'\s+', ' ', q_text).strip()
                 
-                # Extract marks
+                # Extract marks - handle multiple formats
                 marks = None
-                marks_match = re.search(r'\s+(\d{1,2})\s*$', q_text)
+                # Try "X marks" format
+                marks_match = re.search(r'\(?\s*(\d{1,2})\s*marks?\)?\s*$', q_text, re.IGNORECASE)
                 if marks_match:
-                    m = int(marks_match.group(1))
-                    if m <= 14:
-                        marks = m
-                        q_text = q_text[:marks_match.start()].strip()
+                    try:
+                        m = int(marks_match.group(1))
+                        if m <= 14:
+                            marks = m
+                            q_text = q_text[:marks_match.start()].strip()
+                    except ValueError:
+                        pass
+                
+                # Try plain number at end if no marks found
+                if marks is None:
+                    num_match = re.search(r'\s+(\d{1,2})\s*$', q_text)
+                    if num_match:
+                        try:
+                            m = int(num_match.group(1))
+                            if m <= 14:
+                                marks = m
+                                q_text = q_text[:num_match.start()].strip()
+                        except ValueError:
+                            pass
                 
                 q_full_num = f"{q_num}{sub.lower()}" if sub else q_num
                 
@@ -367,7 +416,8 @@ class QuestionExtractor:
                 if marks is None:
                     marks = 3 if is_part_a else 7
                 
-                if len(q_text) >= 15:
+                # Accept question if reasonably long and starts with letter
+                if len(q_text) >= 10 and re.match(r'^[A-Za-z]', q_text):
                     questions.append({
                         'question_number': q_full_num,
                         'text': q_text,
