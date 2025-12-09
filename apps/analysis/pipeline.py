@@ -2,6 +2,7 @@
 Analysis pipeline - Orchestrates the entire analysis workflow.
 """
 import logging
+import re
 from typing import Optional
 from django.utils import timezone
 
@@ -45,8 +46,6 @@ class AnalysisPipeline:
         - Qn 17 & 18 → Module 4
         - Qn 19 & 20 → Module 5
         """
-        import re
-        
         # Extract numeric part from question number (e.g., "11a" -> 11)
         match = re.match(r'(\d+)', str(question_number))
         if not match:

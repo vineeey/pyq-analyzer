@@ -6,6 +6,7 @@ import logging
 import re
 from typing import List, Dict, Any, Optional
 from collections import defaultdict
+import numpy as np
 from django.db import transaction
 
 from apps.questions.models import Question
@@ -210,8 +211,6 @@ class TopicClusteringService:
         """
         Calculate cosine similarity between two embedding vectors.
         """
-        import numpy as np
-        
         try:
             vec1 = np.array(emb1)
             vec2 = np.array(emb2)
@@ -267,10 +266,6 @@ class TopicClusteringService:
             text = text[0].upper() + text[1:]
         
         # Limit length
-        if len(text) > 80:
-            text = text[:77] + '...'
-        
-        # If too long, truncate and add ellipsis
         if len(text) > 80:
             text = text[:77] + '...'
         
