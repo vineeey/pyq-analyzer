@@ -21,6 +21,16 @@ class Question(BaseModel):
         EVALUATE = 'evaluate', 'Evaluate'
         CREATE = 'create', 'Create'
     
+    class QuestionType(models.TextChoices):
+        DEFINITION = 'definition', 'Definition'
+        DERIVATION = 'derivation', 'Derivation'
+        NUMERICAL = 'numerical', 'Numerical Problem'
+        THEORY = 'theory', 'Theoretical'
+        DIAGRAM = 'diagram', 'Diagram-based'
+        COMPARISON = 'comparison', 'Comparison'
+        SHORT_ANSWER = 'short_answer', 'Short Answer'
+        LONG_ANSWER = 'long_answer', 'Long Answer'
+    
     # Source
     paper = models.ForeignKey(
         'papers.Paper',
@@ -34,6 +44,13 @@ class Question(BaseModel):
     sub_questions = models.JSONField(default=list, blank=True)
     marks = models.PositiveIntegerField(null=True, blank=True)
     
+    # Images and diagrams (extracted coordinates and data)
+    images = models.JSONField(
+        default=list, 
+        blank=True,
+        help_text='List of extracted images with bbox coordinates and base64 data'
+    )
+    
     # Classification
     module = models.ForeignKey(
         'subjects.Module',
@@ -44,6 +61,14 @@ class Question(BaseModel):
     )
     topics = models.JSONField(default=list, blank=True)
     keywords = models.JSONField(default=list, blank=True)
+    
+    # Question type classification (via LLM)
+    question_type = models.CharField(
+        max_length=20,
+        choices=QuestionType.choices,
+        blank=True,
+        help_text='Type of question classified by LLM'
+    )
     
     # Analysis results
     difficulty = models.CharField(
@@ -70,6 +95,27 @@ class Question(BaseModel):
         related_name='duplicates'
     )
     similarity_score = models.FloatField(null=True, blank=True)
+    
+    # Repetition tracking
+    repetition_count = models.PositiveIntegerField(
+        default=0,
+        help_text='Number of times this question appeared across papers'
+    )
+    years_appeared = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='List of years when this question appeared'
+    )
+    
+    # Importance and frequency
+    importance_score = models.FloatField(
+        default=0.0,
+        help_text='Calculated importance score based on frequency and recency'
+    )
+    frequency_score = models.FloatField(
+        default=0.0,
+        help_text='Frequency score across years'
+    )
     
     # Topic cluster (for repetition analysis)
     topic_cluster = models.ForeignKey(

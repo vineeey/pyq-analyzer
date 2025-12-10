@@ -9,20 +9,39 @@ from apps.core.models import SoftDeleteModel
 class Subject(SoftDeleteModel):
     """Subject model with customizable module configuration."""
     
+    class UniversityType(models.TextChoices):
+        KTU = 'KTU', 'KTU (APJ Abdul Kalam Technological University)'
+        OTHER = 'OTHER', 'Other University'
+    
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='subjects'
+        related_name='subjects',
+        null=True,
+        blank=True  # Make optional for public access
     )
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=50, blank=True)
     description = models.TextField(blank=True)
     
-    # Syllabus file (optional)
+    # University classification
+    university_type = models.CharField(
+        max_length=10,
+        choices=UniversityType.choices,
+        default=UniversityType.KTU,
+        help_text='KTU uses rule-based mapping, Other uses AI classification'
+    )
+    
+    # Syllabus file (optional) - used for AI classification
     syllabus_file = models.FileField(
         upload_to='syllabi/',
         null=True,
-        blank=True
+        blank=True,
+        help_text='Optional: Upload syllabus for better AI classification'
+    )
+    syllabus_text = models.TextField(
+        blank=True,
+        help_text='Extracted syllabus text for semantic matching'
     )
     
     # Additional metadata
@@ -37,7 +56,8 @@ class Subject(SoftDeleteModel):
         verbose_name = 'Subject'
         verbose_name_plural = 'Subjects'
         ordering = ['-created_at']
-        unique_together = ['user', 'name', 'code']
+        # Remove unique constraint to allow public access without user
+        # unique_together = ['user', 'name', 'code']
     
     def __str__(self):
         if self.code:

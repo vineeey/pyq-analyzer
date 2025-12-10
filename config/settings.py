@@ -86,7 +86,7 @@ DATABASES = {
     }
 }
 
-# Custom User Model
+# Custom User Model (optional now for public access)
 AUTH_USER_MODEL = 'users.User'
 
 # Authentication backends (email-based login)
@@ -95,7 +95,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-# Login/Logout URLs
+# Login/Logout URLs - optional for public mode
 LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = 'core:dashboard'
 LOGOUT_REDIRECT_URL = 'core:home'
@@ -144,13 +144,26 @@ Q_CLUSTER = {
 # Ollama Configuration (Local LLM)
 OLLAMA_BASE_URL = os.environ.get('OLLAMA_BASE_URL', 'http://localhost:11434')
 OLLAMA_MODEL = os.environ.get('OLLAMA_MODEL', 'llama3.2:3b')
+# Supported models: tinyllama, llama3.2:3b, llama3.1:3b, phi3
+OLLAMA_TIMEOUT = int(os.environ.get('OLLAMA_TIMEOUT', '120'))
 
 # Embedding Model Configuration
 EMBEDDING_MODEL = os.environ.get('EMBEDDING_MODEL', 'all-MiniLM-L6-v2')
 
+# Universal Exam Analyzer Settings
+UNIVERSAL_EXAM_ANALYZER = {
+    'PUBLIC_ACCESS': True,  # No authentication required
+    'KTU_RULE_BASED': True,  # Use strict rules for KTU
+    'AI_CLASSIFICATION': True,  # Use AI for other universities
+    'ENABLE_OCR': True,  # Enable Tesseract OCR for scanned PDFs
+    'EXTRACT_IMAGES': True,  # Extract images with PyMuPDF
+    'USE_LOCAL_LLM': True,  # Use Ollama for LLM tasks
+    'MIN_CONFIDENCE': 0.6,  # Minimum confidence for AI classification
+}
+
 # File Upload Settings
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB for PDFs
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
 
 # Logging Configuration
 LOGGING = {
