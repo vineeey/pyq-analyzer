@@ -157,8 +157,9 @@ class QuestionExtractor:
         # The challenge is that marks (3) sometimes appear at the end or middle
         
         # First, try to identify question boundaries by finding all question starts
-        # Pattern: number followed by space and any word starting with capital letter
-        q_starts = list(re.finditer(r'(\d{1,2})\s+([A-Z])', part_a_text))
+        # Pattern: number followed by space and word starting with capital letter or abbreviation
+        # Matches: "1 What", "2 Explain", "3 NDMA", "4 Define"
+        q_starts = list(re.finditer(r'(\d{1,2})\s+([A-Z][a-zA-Z]*)', part_a_text))
         
         for i, match in enumerate(q_starts):
             q_num = match.group(1)
@@ -185,12 +186,6 @@ class QuestionExtractor:
             # Remove trailing marks (usually 3)
             q_text = re.sub(r'\s+3\s*$', '', q_text)
             q_text = re.sub(r'\s+\d\s*$', '', q_text)
-            
-            # Clean OCR artifacts that sometimes appear at end
-            q_text = re.sub(
-                r'\s+(causes|depletion|hazards|assessments|disasters|management|reduction|examples|country)\s*\.?\s*$',
-                '', q_text, flags=re.IGNORECASE
-            )
             
             q_text = q_text.strip()
             
@@ -246,6 +241,7 @@ class QuestionExtractor:
             
             # Extract sub-questions like "11a) Text", "12b) Text", etc.
             # Pattern matches: number + letter + ) + space + capital letter + content until next question
+            # Using .*? (non-greedy) to stop at the next question or end
             sub_q_pattern = r'(\d{1,2})\s*([a-z])\s*\)\s+([A-Z].*?)(?=\s+\d{1,2}\s*[a-z]\s*\)|$)'
             
             for match in re.finditer(sub_q_pattern, mod_content, re.IGNORECASE):
