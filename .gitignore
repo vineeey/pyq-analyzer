@@ -53,6 +53,7 @@ static/dist/
 # Tailwind
 node_modules/
 package-lock.json
+tailwindcss-linux-x64
 
 # Environment variables
 .env

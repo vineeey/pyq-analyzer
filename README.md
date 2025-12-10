@@ -41,12 +41,22 @@ cd pyq-analyzer
 pip install -r requirements.txt
 ```
 
-3. **Run migrations**
+3. **Setup Tailwind CSS binary** (if not present)
+```bash
+# Download the Tailwind CSS standalone binary for your platform
+# For Linux x64:
+curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64
+chmod +x tailwindcss-linux-x64
+
+# For other platforms, see docs/TAILWIND_BINARY.md
+```
+
+4. **Run migrations**
 ```bash
 python manage.py migrate
 ```
 
-4. **Create test data (optional)**
+5. **Create test data (optional)**
 ```bash
 python manage.py setup_test_data
 ```
@@ -56,21 +66,23 @@ This creates:
 - Sample subject: Disaster Management (MCN301)
 - 5 modules with topics and keywords
 
-5. **Start Django-Q worker** (for background tasks)
+6. **Start Django-Q worker** (for background tasks)
 ```bash
 # In a separate terminal
 python manage.py qcluster
 ```
 
-6. **Run development server**
+7. **Run development server**
 ```bash
 python manage.py runserver
 ```
 
-7. **Access the application**
+8. **Access the application**
 ```
 http://localhost:8000
 ```
+
+> **Note**: For detailed information about the Tailwind CSS binary setup, see [docs/TAILWIND_BINARY.md](docs/TAILWIND_BINARY.md)
 
 ## 📖 Usage Guide
 
