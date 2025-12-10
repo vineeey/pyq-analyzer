@@ -17,8 +17,10 @@ elif [ "$ARCH" = "armv7l" ]; then
 fi
 
 # Determine download URL based on OS and architecture
+# Using v3.4.17 for compatibility with the current configuration
+VERSION="v3.4.17"
 BINARY_NAME="tailwindcss-${OS}-${ARCH}"
-DOWNLOAD_URL="https://github.com/tailwindlabs/tailwindcss/releases/latest/download/${BINARY_NAME}"
+DOWNLOAD_URL="https://github.com/tailwindlabs/tailwindcss/releases/download/${VERSION}/${BINARY_NAME}"
 
 echo "Detected OS: ${OS}"
 echo "Detected Architecture: ${ARCH}"
