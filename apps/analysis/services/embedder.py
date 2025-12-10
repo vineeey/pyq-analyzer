@@ -44,14 +44,30 @@ class EmbeddingService:
             logger.error(f"Embedding generation failed: {e}")
             return None
     
-    def get_embeddings_batch(self, texts: List[str]) -> List[Optional[List[float]]]:
+    def get_embeddings_batch(self, texts: List[str], batch_size: int = 32) -> List[Optional[List[float]]]:
         """
-        Generate embeddings for multiple texts.
+        Generate embeddings for multiple texts in batches to avoid memory issues.
+        
+        Args:
+            texts: List of text strings
+            batch_size: Number of texts to process at once (default 32)
         """
         try:
             self._load_model()
-            embeddings = EmbeddingService._model.encode(texts, convert_to_numpy=True)
-            return [emb.tolist() for emb in embeddings]
+            
+            # Process in batches to avoid memory issues
+            all_embeddings = []
+            for i in range(0, len(texts), batch_size):
+                batch = texts[i:i + batch_size]
+                try:
+                    batch_embeddings = EmbeddingService._model.encode(batch, convert_to_numpy=True)
+                    all_embeddings.extend([emb.tolist() for emb in batch_embeddings])
+                except Exception as e:
+                    logger.error(f"Batch embedding failed for batch {i//batch_size}: {e}")
+                    # Add None for failed embeddings
+                    all_embeddings.extend([None] * len(batch))
+            
+            return all_embeddings
         except Exception as e:
             logger.error(f"Batch embedding generation failed: {e}")
             return [None] * len(texts)
