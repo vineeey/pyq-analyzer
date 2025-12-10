@@ -77,9 +77,13 @@ class QuestionExtractor:
         questions.extend(part_b_questions)
         
         # If extraction yielded very few questions, try fallback
-        if len(questions) < 5:
+        # Only use fallback if we got almost nothing (< 3 questions)
+        if len(questions) < 3:
             logger.info("Primary extraction yielded few questions, trying fallback...")
-            questions = self._fallback_extraction(cleaned_text)
+            fallback_questions = self._fallback_extraction(cleaned_text)
+            # Only replace if fallback found more questions
+            if len(fallback_questions) > len(questions):
+                questions = fallback_questions
         
         # Deduplicate
         questions = self._deduplicate(questions)
@@ -153,7 +157,8 @@ class QuestionExtractor:
         # The challenge is that marks (3) sometimes appear at the end or middle
         
         # First, try to identify question boundaries by finding all question starts
-        q_starts = list(re.finditer(r'(\d{1,2})\s+([A-Z][a-z])', part_a_text))
+        # Pattern: number followed by space and any word starting with capital letter
+        q_starts = list(re.finditer(r'(\d{1,2})\s+([A-Z])', part_a_text))
         
         for i, match in enumerate(q_starts):
             q_num = match.group(1)
@@ -239,8 +244,9 @@ class QuestionExtractor:
             # Join lines
             mod_content = ' '.join(mod_content.split())
             
-            # Extract sub-questions like "11a)", "11 a)", "11a )", etc.
-            sub_q_pattern = r'(\d{1,2})\s*([a-z])\s*\)?[)\s]+([A-Z][^0-9\n]*?)(?=\s+\d{1,2}\s*[a-z]?\s*\)?|$)'
+            # Extract sub-questions like "11a) Text", "12b) Text", etc.
+            # Pattern matches: number + letter + ) + space + capital letter + content until next question
+            sub_q_pattern = r'(\d{1,2})\s*([a-z])\s*\)\s+([A-Z].*?)(?=\s+\d{1,2}\s*[a-z]\s*\)|$)'
             
             for match in re.finditer(sub_q_pattern, mod_content, re.IGNORECASE):
                 q_num = match.group(1)

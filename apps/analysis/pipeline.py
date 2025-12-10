@@ -51,14 +51,22 @@ class AnalysisPipeline:
             job.save()
             
             text = self.extractor.extract_text(paper.file.path)
+            if not text or len(text.strip()) < 100:
+                raise ValueError("PDF appears to be empty or contains insufficient text. Please check if the PDF is a scanned image that requires OCR.")
+            
             paper.raw_text = text
             paper.page_count = self.extractor.get_page_count(paper.file.path)
             paper.save()
             
             questions_data = self.extractor.extract_questions(text)
+            if not questions_data:
+                raise ValueError("No questions could be extracted from the PDF. Please check the PDF format or content.")
+            
             job.questions_extracted = len(questions_data)
             job.progress = 30
             job.save()
+            
+            logger.info(f"Extracted {len(questions_data)} questions from paper {paper.id}")
             
             # Step 2: Create question objects and classify
             job.status = AnalysisJob.Status.CLASSIFYING

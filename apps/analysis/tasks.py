@@ -12,23 +12,35 @@ def analyze_paper_task(paper_id: str):
     Called via Django-Q2.
     """
     from .pipeline import AnalysisPipeline
+    import logging
+    
+    logger = logging.getLogger(__name__)
     
     try:
         paper = Paper.objects.get(id=paper_id)
         paper.status = Paper.ProcessingStatus.PROCESSING
         paper.save()
         
+        logger.info(f"Starting analysis for paper {paper.id}: {paper.title}")
+        
         # Run analysis without LLM for speed (use keyword-based classification)
         # LLM is too slow for real-time processing
         pipeline = AnalysisPipeline(llm_client=None)
-        pipeline.analyze_paper(paper)
+        job = pipeline.analyze_paper(paper)
+        
+        logger.info(f"Analysis completed for paper {paper.id}. Status: {job.status}")
         
     except Paper.DoesNotExist:
-        pass
+        logger.error(f"Paper {paper_id} not found")
     except Exception as e:
-        paper.status = Paper.ProcessingStatus.FAILED
-        paper.processing_error = str(e)
-        paper.save()
+        logger.exception(f"Analysis failed for paper {paper_id}: {e}")
+        try:
+            paper = Paper.objects.get(id=paper_id)
+            paper.status = Paper.ProcessingStatus.FAILED
+            paper.processing_error = str(e)
+            paper.save()
+        except Exception:
+            pass
 
 
 def analyze_subject_topics_task(subject_id: str):
@@ -37,20 +49,28 @@ def analyze_subject_topics_task(subject_id: str):
     Performs clustering and repetition analysis.
     """
     from apps.analytics.clustering import analyze_subject_topics
+    import logging
+    
+    logger = logging.getLogger(__name__)
     
     try:
         subject = Subject.objects.get(id=subject_id)
+        logger.info(f"Starting topic analysis for subject {subject.id}: {subject.name}")
         
         # Run topic clustering analysis
         results = analyze_subject_topics(subject)
         
+        logger.info(f"Topic analysis completed for subject {subject.id}. "
+                   f"Created {results.get('clusters_created', 0)} clusters, "
+                   f"processed {results.get('questions_processed', 0)} questions")
+        
         return results
         
     except Subject.DoesNotExist:
-        pass
+        logger.error(f"Subject {subject_id} not found")
     except Exception as e:
-        import logging
-        logging.error(f"Topic analysis failed for subject {subject_id}: {e}")
+        logger.exception(f"Topic analysis failed for subject {subject_id}: {e}")
+        raise  # Re-raise to mark task as failed in Django-Q
 
 
 def queue_paper_analysis(paper: Paper):
