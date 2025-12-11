@@ -1,61 +1,131 @@
-<nav class="fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+<nav class="fixed top-0 left-0 right-0 z-50 glass backdrop-blur-md border-b border-white/20 dark:border-white/10 transition-all duration-300"
+     x-data="{ scrolled: false, mobileMenuOpen: false }"
+     @scroll.window="scrolled = (window.pageYOffset > 50)"
+     :class="{ 'shadow-2xl': scrolled }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <!-- Logo -->
             <div class="flex items-center">
-                <a href="{% url 'core:home' %}" class="flex items-center space-x-2">
-                    <i data-lucide="book-open" class="w-8 h-8 text-indigo-600 dark:text-indigo-400"></i>
-                    <span class="text-xl font-bold text-gray-900 dark:text-white">PYQ Analyzer</span>
+                <a href="{% url 'core:home' %}" class="flex items-center space-x-3 group">
+                    <div class="relative">
+                        <i data-lucide="brain" class="w-8 h-8 text-indigo-600 dark:text-indigo-400 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12"></i>
+                        <div class="absolute inset-0 bg-indigo-500/20 dark:bg-indigo-400/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+                    <span class="text-xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                        PYQ Analyzer
+                    </span>
                 </a>
             </div>
             
-            <!-- Navigation Links -->
-            <div class="hidden md:flex items-center space-x-4">
+            <!-- Navigation Links (Desktop) -->
+            <div class="hidden md:flex items-center space-x-1">
                 {% if user.is_authenticated %}
-                <a href="{% url 'core:dashboard' %}" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">
-                    Dashboard
+                <a href="{% url 'core:dashboard' %}" 
+                   class="relative px-4 py-2 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 group">
+                    <span class="relative z-10">Dashboard</span>
+                    <div class="absolute inset-0 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </a>
-                <a href="{% url 'subjects:list' %}" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-md text-sm font-medium">
-                    Subjects
+                <a href="{% url 'subjects:list' %}" 
+                   class="relative px-4 py-2 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 group">
+                    <span class="relative z-10">Subjects</span>
+                    <div class="absolute inset-0 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </a>
+                <a href="{% url 'papers:generic_upload' %}" 
+                   class="relative px-4 py-2 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 group">
+                    <span class="relative z-10">Upload</span>
+                    <div class="absolute inset-0 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </a>
                 {% endif %}
             </div>
             
             <!-- Right side -->
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3">
                 <!-- Dark mode toggle -->
                 <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)"
-                        class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                    <i data-lucide="sun" class="w-5 h-5" x-show="darkMode"></i>
-                    <i data-lucide="moon" class="w-5 h-5" x-show="!darkMode"></i>
+                        class="relative p-2.5 text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/5 rounded-xl transition-all duration-300 group">
+                    <i data-lucide="sun" class="w-5 h-5 transition-transform duration-300 group-hover:rotate-180" x-show="darkMode"></i>
+                    <i data-lucide="moon" class="w-5 h-5 transition-transform duration-300 group-hover:rotate-180" x-show="!darkMode"></i>
                 </button>
                 
                 {% if user.is_authenticated %}
                 <!-- User dropdown -->
                 <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" class="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-indigo-600">
-                        <span class="text-sm font-medium">{{ user.get_display_name }}</span>
-                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                    <button @click="open = !open" 
+                            class="flex items-center space-x-2 px-4 py-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/5 transition-all duration-300">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+                            {{ user.get_display_name|first|upper }}
+                        </div>
+                        <span class="text-sm font-medium hidden lg:block">{{ user.get_display_name }}</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
                     </button>
-                    <div x-show="open" @click.away="open = false"
-                         class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1">
-                        <a href="{% url 'users:profile' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            Profile
+                    <div x-show="open" 
+                         @click.away="open = false"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform scale-95"
+                         x-transition:enter-end="opacity-100 transform scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 transform scale-100"
+                         x-transition:leave-end="opacity-0 transform scale-95"
+                         class="absolute right-0 mt-3 w-56 glass rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 py-2 overflow-hidden">
+                        <a href="{% url 'users:profile' %}" 
+                           class="flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/5 transition-colors duration-200">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                            <span>Profile</span>
                         </a>
-                        <a href="{% url 'users:logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            Logout
+                        <div class="h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent my-1"></div>
+                        <a href="{% url 'users:logout' %}" 
+                           class="flex items-center space-x-3 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            <span>Logout</span>
                         </a>
                     </div>
                 </div>
                 {% else %}
-                <a href="{% url 'users:login' %}" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 px-3 py-2 text-sm font-medium">
+                <a href="{% url 'users:login' %}" 
+                   class="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/5 transition-all duration-300">
                     Login
                 </a>
-                <a href="{% url 'users:register' %}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">
-                    Sign Up
+                <a href="{% url 'users:register' %}" 
+                   class="relative px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    <span class="relative z-10">Get Started</span>
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
                 </a>
                 {% endif %}
+                
+                <!-- Mobile menu button -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen"
+                        class="md:hidden p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/5 transition-all duration-300">
+                    <i data-lucide="menu" class="w-6 h-6" x-show="!mobileMenuOpen"></i>
+                    <i data-lucide="x" class="w-6 h-6" x-show="mobileMenuOpen"></i>
+                </button>
             </div>
+        </div>
+    </div>
+    
+    <!-- Mobile menu -->
+    <div x-show="mobileMenuOpen"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 transform -translate-y-4"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform -translate-y-4"
+         class="md:hidden border-t border-white/20 dark:border-white/10 glass">
+        <div class="px-4 py-4 space-y-2">
+            {% if user.is_authenticated %}
+            <a href="{% url 'core:dashboard' %}" 
+               class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/5 transition-all duration-200">
+                Dashboard
+            </a>
+            <a href="{% url 'subjects:list' %}" 
+               class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/5 transition-all duration-200">
+                Subjects
+            </a>
+            <a href="{% url 'papers:generic_upload' %}" 
+               class="block px-4 py-3 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/5 transition-all duration-200">
+                Upload
+            </a>
+            {% endif %}
         </div>
     </div>
 </nav>
