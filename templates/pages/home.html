@@ -2,97 +2,280 @@
 
 {% block title %}PYQ Analyzer - AI-Powered Question Paper Analysis{% endblock %}
 
+{% block extra_head %}
+<style>
+    /* Hero gradient animation */
+    .hero-gradient {
+        background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+    }
+    
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Floating elements */
+    .float-slow {
+        animation: floatSlow 8s ease-in-out infinite;
+    }
+    
+    @keyframes floatSlow {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-30px) rotate(5deg); }
+    }
+    
+    /* Glow effect */
+    .glow {
+        box-shadow: 0 0 40px rgba(99, 102, 241, 0.4);
+    }
+    
+    .dark .glow {
+        box-shadow: 0 0 60px rgba(139, 92, 246, 0.6);
+    }
+    
+    /* Shimmer effect */
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+    
+    .shimmer {
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        background-size: 1000px 100%;
+        animation: shimmer 3s infinite;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900">
-    <!-- Hero Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
-        <div class="text-center">
-            <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-                Analyze Question Papers
-                <span class="text-indigo-600 dark:text-indigo-400">with AI</span>
+<!-- Hero Section with Animated Background -->
+<section class="relative min-h-screen flex items-center justify-center overflow-hidden hero-gradient">
+    <!-- Animated geometric shapes -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl float-slow"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl float-slow" style="animation-delay: -2s;"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl float-slow" style="animation-delay: -4s;"></div>
+    </div>
+    
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <!-- Main heading with fade-in animation -->
+        <div class="fade-in" style="animation-delay: 0.2s;">
+            <h1 class="text-6xl md:text-8xl font-black text-white mb-6 leading-tight">
+                Master Your Exams
+                <br>
+                <span class="bg-gradient-to-r from-yellow-200 via-pink-200 to-purple-200 bg-clip-text text-transparent">
+                    with AI Power
+                </span>
             </h1>
-            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
-                Upload your previous year question papers and get instant AI-powered analysis.
-                Module classification, duplicate detection, difficulty assessment, and beautiful reports.
-                <strong>100% free, 100% local.</strong>
+        </div>
+        
+        <div class="fade-in" style="animation-delay: 0.4s;">
+            <p class="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-10 leading-relaxed">
+                Upload previous year papers, get instant AI analysis, identify patterns, 
+                and focus on what matters most. <strong class="text-yellow-200">100% Free. 100% Private.</strong>
             </p>
-            <div class="flex justify-center space-x-4">
-                {% if user.is_authenticated %}
-                <a href="{% url 'core:dashboard' %}" class="bg-indigo-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition">
+        </div>
+        
+        <!-- CTA Buttons -->
+        <div class="flex flex-col sm:flex-row justify-center gap-4 mb-16 fade-in" style="animation-delay: 0.6s;">
+            {% if user.is_authenticated %}
+            <a href="{% url 'core:dashboard' %}" 
+               class="group relative px-10 py-5 bg-white text-indigo-600 rounded-2xl text-lg font-bold shadow-2xl hover:shadow-white/50 transition-all duration-300 transform hover:scale-105 glow">
+                <span class="relative z-10 flex items-center justify-center">
                     Go to Dashboard
-                </a>
-                {% else %}
-                <a href="{% url 'users:register' %}" class="bg-indigo-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition">
+                    <i data-lucide="arrow-right" class="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-2"></i>
+                </span>
+            </a>
+            {% else %}
+            <a href="{% url 'users:register' %}" 
+               class="group relative px-10 py-5 bg-white text-indigo-600 rounded-2xl text-lg font-bold shadow-2xl hover:shadow-white/50 transition-all duration-300 transform hover:scale-105 glow overflow-hidden">
+                <span class="relative z-10 flex items-center justify-center">
                     Get Started Free
-                </a>
-                <a href="{% url 'users:login' %}" class="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-8 py-3 rounded-lg text-lg font-semibold border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                    <i data-lucide="sparkles" class="w-5 h-5 ml-2 transition-transform duration-300 group-hover:rotate-12"></i>
+                </span>
+                <div class="absolute inset-0 shimmer"></div>
+            </a>
+            <a href="{% url 'users:login' %}" 
+               class="group px-10 py-5 glass text-white rounded-2xl text-lg font-bold border-2 border-white/30 hover:border-white/50 transition-all duration-300 transform hover:scale-105">
+                <span class="flex items-center justify-center">
                     Login
-                </a>
-                {% endif %}
+                    <i data-lucide="log-in" class="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
+                </span>
+            </a>
+            {% endif %}
+        </div>
+        
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-8 max-w-3xl mx-auto fade-in" style="animation-delay: 0.8s;">
+            <div class="glass rounded-2xl p-6 text-white">
+                <div class="text-4xl font-bold mb-2">100%</div>
+                <div class="text-sm opacity-90">Free Forever</div>
+            </div>
+            <div class="glass rounded-2xl p-6 text-white">
+                <div class="text-4xl font-bold mb-2">AI</div>
+                <div class="text-sm opacity-90">Powered Analysis</div>
+            </div>
+            <div class="glass rounded-2xl p-6 text-white">
+                <div class="text-4xl font-bold mb-2">∞</div>
+                <div class="text-sm opacity-90">Unlimited Papers</div>
             </div>
         </div>
     </div>
     
-    <!-- Features Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">
-            Powerful Features
-        </h2>
-        <div class="grid md:grid-cols-3 gap-8">
+    <!-- Scroll indicator -->
+    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <i data-lucide="chevron-down" class="w-8 h-8 text-white/80"></i>
+    </div>
+</section>
+
+<!-- Features Section with Scroll Animations -->
+<section class="relative py-32 bg-white dark:bg-gray-900" id="features">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-20 scroll-fade-in">
+            <h2 class="text-5xl md:text-6xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent mb-6">
+                Powerful Features
+            </h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                Everything you need to ace your exams, all in one intelligent platform
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <!-- Feature 1 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-                <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center mb-4">
-                    <i data-lucide="upload" class="w-6 h-6 text-indigo-600 dark:text-indigo-400"></i>
+            <div class="group feature-card glass dark:glass rounded-3xl p-8 hover:scale-105 transition-all duration-500 hover:shadow-2xl border border-transparent hover:border-indigo-500/50">
+                <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-500">
+                    <i data-lucide="upload" class="w-8 h-8 text-white"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">PDF Upload</h3>
-                <p class="text-gray-600 dark:text-gray-300">Upload question papers in PDF format. Automatic text extraction with OCR support.</p>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Smart Upload</h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Drag & drop multiple PDFs. Automatic text extraction with intelligent OCR. Process years of papers in seconds.
+                </p>
             </div>
             
             <!-- Feature 2 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-                <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mb-4">
-                    <i data-lucide="brain" class="w-6 h-6 text-green-600 dark:text-green-400"></i>
+            <div class="group feature-card glass dark:glass rounded-3xl p-8 hover:scale-105 transition-all duration-500 hover:shadow-2xl border border-transparent hover:border-green-500/50">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-500">
+                    <i data-lucide="brain" class="w-8 h-8 text-white"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">AI Classification</h3>
-                <p class="text-gray-600 dark:text-gray-300">Automatic module mapping, topic detection, and Bloom's taxonomy classification.</p>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">AI Classification</h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Automatic module mapping, topic clustering, and Bloom's taxonomy classification using advanced ML models.
+                </p>
             </div>
             
             <!-- Feature 3 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-                <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mb-4">
-                    <i data-lucide="copy" class="w-6 h-6 text-purple-600 dark:text-purple-400"></i>
+            <div class="group feature-card glass dark:glass rounded-3xl p-8 hover:scale-105 transition-all duration-500 hover:shadow-2xl border border-transparent hover:border-purple-500/50">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-500">
+                    <i data-lucide="copy" class="w-8 h-8 text-white"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Duplicate Detection</h3>
-                <p class="text-gray-600 dark:text-gray-300">Find repeated questions across years using advanced embedding similarity.</p>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Pattern Detection</h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Find repeated questions across years. Identify high-frequency topics with smart similarity matching.
+                </p>
             </div>
             
             <!-- Feature 4 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-                <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center mb-4">
-                    <i data-lucide="bar-chart-3" class="w-6 h-6 text-yellow-600 dark:text-yellow-400"></i>
+            <div class="group feature-card glass dark:glass rounded-3xl p-8 hover:scale-105 transition-all duration-500 hover:shadow-2xl border border-transparent hover:border-yellow-500/50">
+                <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-500">
+                    <i data-lucide="bar-chart-3" class="w-8 h-8 text-white"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Analytics Dashboard</h3>
-                <p class="text-gray-600 dark:text-gray-300">Beautiful charts showing module distribution, difficulty trends, and more.</p>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Visual Analytics</h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Beautiful interactive charts. Module distribution, difficulty trends, topic frequencies - all visualized.
+                </p>
             </div>
             
             <!-- Feature 5 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-                <div class="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center mb-4">
-                    <i data-lucide="file-text" class="w-6 h-6 text-red-600 dark:text-red-400"></i>
+            <div class="group feature-card glass dark:glass rounded-3xl p-8 hover:scale-105 transition-all duration-500 hover:shadow-2xl border border-transparent hover:border-red-500/50">
+                <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-500">
+                    <i data-lucide="file-text" class="w-8 h-8 text-white"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">PDF Reports</h3>
-                <p class="text-gray-600 dark:text-gray-300">Generate professional module-wise reports for exam preparation.</p>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Smart Reports</h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Generate beautiful module-wise PDFs. Priority rankings, study strategies, all ready for printing.
+                </p>
             </div>
             
             <!-- Feature 6 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-4">
-                    <i data-lucide="shield-check" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
+            <div class="group feature-card glass dark:glass rounded-3xl p-8 hover:scale-105 transition-all duration-500 hover:shadow-2xl border border-transparent hover:border-blue-500/50">
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-500">
+                    <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">100% Private</h3>
-                <p class="text-gray-600 dark:text-gray-300">All processing happens locally. Your data never leaves your computer.</p>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">100% Private</h3>
+                <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Zero cloud processing. All data stays on your device. No tracking, no ads, complete privacy.
+                </p>
             </div>
         </div>
     </div>
-</div>
+</section>
+
+<!-- How It Works Section -->
+<section class="relative py-32 bg-gradient-to-br from-gray-50 to-indigo-50 dark:from-gray-800 dark:to-indigo-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-20">
+            <h2 class="text-5xl md:text-6xl font-black text-gray-900 dark:text-white mb-6">
+                How It Works
+            </h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400">
+                Three simple steps to exam success
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-12">
+            <div class="text-center">
+                <div class="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6 shadow-2xl">
+                    1
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Upload Papers</h3>
+                <p class="text-gray-600 dark:text-gray-400">
+                    Drop your PDF question papers. Upload as many as you have.
+                </p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-24 h-24 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6 shadow-2xl">
+                    2
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">AI Analysis</h3>
+                <p class="text-gray-600 dark:text-gray-400">
+                    Our AI extracts, classifies, and identifies patterns automatically.
+                </p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mx-auto mb-6 shadow-2xl">
+                    3
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Study Smart</h3>
+                <p class="text-gray-600 dark:text-gray-400">
+                    Get priority rankings and focus on high-frequency topics.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // GSAP Scroll Animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Feature cards animation
+        gsap.utils.toArray('.feature-card').forEach((card, i) => {
+            gsap.from(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: 'top 85%',
+                    toggleActions: 'play none none reverse'
+                },
+                opacity: 0,
+                y: 50,
+                duration: 0.8,
+                delay: i * 0.1
+            });
+        });
+    });
+</script>
 {% endblock %}
