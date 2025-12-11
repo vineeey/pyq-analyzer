@@ -51,6 +51,30 @@
     <form method="post" enctype="multipart/form-data" class="space-y-6" x-data="batchUpload()">
         {% csrf_token %}
         
+        <!-- University Selection -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">
+                <i data-lucide="university" class="w-5 h-5 mr-2"></i>
+                Select University
+            </h2>
+            <div class="max-w-md">
+                <select 
+                    name="university" 
+                    id="university"
+                    class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    required
+                >
+                    <option value="ktu" selected>KTU (APJ Abdul Kalam Technological University)</option>
+                    <option value="other">Other University</option>
+                </select>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    For KTU, questions will be automatically classified into modules using the standard pattern:
+                    Q1-2 → Module 1, Q3-4 → Module 2, Q5-6 → Module 3, Q7-8 → Module 4, Q9-10 → Module 5 (Part A),
+                    Q11-12 → Module 1, Q13-14 → Module 2, Q15-16 → Module 3, Q17-18 → Module 4, Q19-20 → Module 5 (Part B).
+                </p>
+            </div>
+        </div>
+        
         <!-- File Upload Area -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">

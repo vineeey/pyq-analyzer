@@ -199,6 +199,7 @@ class PaperUploadView(LoginRequiredMixin, FormView):
     def post(self, request, *args, **kwargs):
         """Handle file upload - bypass form validation and handle files directly."""
         files = request.FILES.getlist('files')
+        university = request.POST.get('university', 'ktu')
         
         if not files:
             messages.error(request, 'Please select at least one PDF file.')
@@ -242,6 +243,7 @@ class PaperUploadView(LoginRequiredMixin, FormView):
                 exam_type=parsed['exam_type'],
                 file=uploaded_file,
                 file_hash=file_hash_hex,
+                university=university,
             )
             uploaded_count += 1
             

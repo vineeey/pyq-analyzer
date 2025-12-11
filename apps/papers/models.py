@@ -15,6 +15,10 @@ class Paper(SoftDeleteModel):
         COMPLETED = 'completed', 'Completed'
         FAILED = 'failed', 'Failed'
     
+    class UniversityChoice(models.TextChoices):
+        KTU = 'ktu', 'KTU (APJ Abdul Kalam Technological University)'
+        OTHER = 'other', 'Other University'
+    
     subject = models.ForeignKey(
         'subjects.Subject',
         on_delete=models.CASCADE,
@@ -25,6 +29,12 @@ class Paper(SoftDeleteModel):
     title = models.CharField(max_length=255)
     year = models.CharField(max_length=50, blank=True)
     exam_type = models.CharField(max_length=100, blank=True)  # e.g., "Mid-term", "Final", "GATE"
+    university = models.CharField(
+        max_length=50,
+        choices=UniversityChoice.choices,
+        default=UniversityChoice.KTU,
+        help_text='University for classification rules'
+    )
     
     # File details
     file = models.FileField(upload_to='papers/')

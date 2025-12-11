@@ -6,6 +6,7 @@ import logging
 import re
 from typing import List, Dict, Any, Optional
 from collections import defaultdict
+import numpy as np
 from django.db import transaction
 
 from apps.questions.models import Question
@@ -127,7 +128,7 @@ class TopicClusteringService:
     def _are_similar(self, q1: Question, q2: Question) -> bool:
         """
         Determine if two questions are similar enough to be grouped.
-        Uses text normalization and fuzzy matching.
+        Uses text normalization, fuzzy matching, and optional embeddings.
         """
         # Normalize both texts
         norm1 = self._normalize_text(q1.text)
@@ -138,10 +139,27 @@ class TopicClusteringService:
             # Use simple substring matching for short questions
             return norm1 in norm2 or norm2 in norm1
         
-        # Calculate simple similarity score
-        similarity = self._calculate_text_similarity(norm1, norm2)
+        # Try fuzzy matching first (fast)
+        try:
+            from rapidfuzz import fuzz
+            fuzzy_score = fuzz.token_sort_ratio(norm1, norm2) / 100.0
+            if fuzzy_score >= self.similarity_threshold:
+                return True
+        except ImportError:
+            pass
         
-        return similarity >= self.similarity_threshold
+        # Calculate Jaccard similarity (fallback)
+        jaccard_sim = self._calculate_text_similarity(norm1, norm2)
+        if jaccard_sim >= self.similarity_threshold:
+            return True
+        
+        # If embeddings are available, use cosine similarity
+        if q1.embedding and q2.embedding:
+            cosine_sim = self._calculate_cosine_similarity(q1.embedding, q2.embedding)
+            if cosine_sim >= self.similarity_threshold:
+                return True
+        
+        return False
     
     def _normalize_text(self, text: str) -> str:
         """
@@ -190,28 +208,65 @@ class TopicClusteringService:
         
         return len(intersection) / len(union) if union else 0.0
     
+    def _calculate_cosine_similarity(self, emb1: list, emb2: list) -> float:
+        """
+        Calculate cosine similarity between two embedding vectors.
+        """
+        try:
+            vec1 = np.array(emb1)
+            vec2 = np.array(emb2)
+            
+            dot_product = np.dot(vec1, vec2)
+            norm1 = np.linalg.norm(vec1)
+            norm2 = np.linalg.norm(vec2)
+            
+            if norm1 == 0 or norm2 == 0:
+                return 0.0
+            
+            return dot_product / (norm1 * norm2)
+        except Exception:
+            return 0.0
+    
     def _extract_topic_name(self, question: Question) -> str:
         """
         Extract a human-readable topic name from a question.
+        Extracts key noun phrases to create a concise topic label.
         """
         text = question.text
         
-        # Remove question indicators
-        text = re.sub(r'^(explain|define|describe|discuss|what|how|why|list|enumerate|state|elaborate|illustrate|classify|compare|differentiate)\s+', '', text, flags=re.IGNORECASE)
+        # Remove question indicators and action verbs
+        text = re.sub(
+            r'^(explain|define|describe|discuss|what|how|why|list|enumerate|state|'
+            r'elaborate|illustrate|classify|compare|differentiate|write|give|mention|'
+            r'outline|summarize|analyze|evaluate|examine)\s+(about\s+)?(the\s+)?',
+            '', text, flags=re.IGNORECASE
+        )
         
-        # Take first part (up to 100 chars or first sentence)
+        # Remove trailing instructions like "with diagram", "with examples"
+        text = re.sub(
+            r'\s+(with|using|by)\s+(diagram|example|illustration|detail|reference|help of).*$',
+            '', text, flags=re.IGNORECASE
+        )
+        
+        # Take first meaningful part
         if '?' in text:
             text = text.split('?')[0]
-        elif '.' in text:
-            sentences = text.split('.')
-            text = sentences[0] if len(sentences[0]) < 100 else sentences[0][:100]
-        else:
-            text = text[:100]
+        elif '.' in text and text.index('.') < 80:
+            text = text.split('.')[0]
         
-        # Capitalize first letter
-        text = text.strip().capitalize()
+        # Extract noun phrases (simple approach - keep capitalized words and key terms)
+        # This helps create topic names like "Layers of atmosphere", "Indian monsoon"
+        words = text.split()
+        if len(words) > 12:
+            # If too long, take first 8-10 meaningful words
+            text = ' '.join(words[:10])
         
-        # If too long, truncate and add ellipsis
+        # Clean up and format
+        text = text.strip()
+        if text and not text[0].isupper():
+            text = text[0].upper() + text[1:]
+        
+        # Limit length
         if len(text) > 80:
             text = text[:77] + '...'
         
