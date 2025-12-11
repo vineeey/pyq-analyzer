@@ -53,12 +53,22 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Chart.js default configuration
+// Chart.js default configuration with error handling
 if (typeof Chart !== 'undefined') {
-    Chart.defaults.font.family = 'Inter, system-ui, -apple-system, sans-serif';
-    Chart.defaults.plugins.legend.position = 'bottom';
-    Chart.defaults.color = '#6B7280';
-    Chart.defaults.borderColor = 'rgba(99, 102, 241, 0.1)';
+    try {
+        if (Chart.defaults) {
+            if (Chart.defaults.font) {
+                Chart.defaults.font.family = 'Inter, system-ui, -apple-system, sans-serif';
+            }
+            if (Chart.defaults.plugins && Chart.defaults.plugins.legend) {
+                Chart.defaults.plugins.legend.position = 'bottom';
+            }
+            Chart.defaults.color = '#6B7280';
+            Chart.defaults.borderColor = 'rgba(99, 102, 241, 0.1)';
+        }
+    } catch (error) {
+        console.warn('Chart.js configuration failed:', error);
+    }
 }
 
 // Initialize GSAP animations

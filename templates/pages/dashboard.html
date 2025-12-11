@@ -144,21 +144,27 @@
 </div>
 
 <script>
-    // Animated counter for stats
+    // Animated counter for stats with time-based approach
     document.addEventListener('DOMContentLoaded', function() {
         const counters = document.querySelectorAll('.counter');
         
         counters.forEach(counter => {
-            const target = parseInt(counter.getAttribute('data-target'));
+            const target = parseInt(counter.getAttribute('data-target')) || 0;
             const duration = 2000; // 2 seconds
-            const increment = target / (duration / 16); // 60 FPS
-            let current = 0;
             
-            const updateCounter = () => {
-                current += increment;
-                if (current < target) {
-                    counter.textContent = Math.floor(current);
-                    requestAnimationFrame(updateCounter);
+            const animateCounter = (startTime) => {
+                const currentTime = Date.now();
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function for smooth animation
+                const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+                const current = Math.floor(target * easeOutCubic(progress));
+                
+                counter.textContent = current;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(() => animateCounter(startTime));
                 } else {
                     counter.textContent = target;
                 }
@@ -168,7 +174,7 @@
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        updateCounter();
+                        animateCounter(Date.now());
                         observer.unobserve(entry.target);
                     }
                 });
